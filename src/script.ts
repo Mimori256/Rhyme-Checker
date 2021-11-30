@@ -7,6 +7,8 @@ const colorCodeList: string[] = [
   '<span style = "background-color:#006400">',
   '<span style = "background-color:#da1552">',
   '<span style = "background-color:#d98240">',
+  '<span style = "background-color:#c71585">',
+  '<span style = "background-color:#3cb371">',
 ];
 
 const capitalize = (sentence: string): string => {
@@ -30,18 +32,26 @@ const applyColor = (
   accentSyllableList: string[]
 ): string => {
   word =
-    colorCodeList[(accentSyllableList.indexOf(accentSyllable) + count) % 7] +
+    colorCodeList[
+      (accentSyllableList.indexOf(accentSyllable) + count) %
+        colorCodeList.length
+    ] +
     word +
     "</span>";
   return word;
 };
 
 const createNotFoundWordList = (wordList: string[]): string => {
-  const header = "<h3>Word that couldn't be found in the dictionary</h3>";
+  let header;
+  if (wordList.length === 1) {
+    header = "<h3>Word that couldn't be found in the dictionary</h3>";
+  } else {
+    header = "<h3>Words that couldn't be found in the dictionary</h3>";
+  }
   return header + wordList.join(", ");
 };
 
-const checkSingleLineRhyme = (): void => {
+const checkSingleLineRhyme = (): string[][] => {
   let count = 0;
 
   let text: string = (<HTMLInputElement>document.getElementById("verse")).value;
@@ -55,13 +65,6 @@ const checkSingleLineRhyme = (): void => {
   let sentenceList = text.split("\n");
   let isRhyme = false;
   let errorWordList: string[] = [];
-
-  const resultHTMLElement = <HTMLInputElement>document.getElementById("result");
-  const notFoundHTMLElement = <HTMLInputElement>(
-    document.getElementById("notFoundWord")
-  );
-
-  notFoundHTMLElement.innerHTML = "";
 
   sentenceList.forEach((sentence) => {
     let coloredSentence = "";
@@ -103,10 +106,51 @@ const checkSingleLineRhyme = (): void => {
     result.push(coloredSentence);
     count += accentSyllableList.length;
   });
-  resultHTMLElement.innerHTML =
-    "<font color='black'>" + result.join("<br><br>") + "</font>";
+  return [result, errorWordList];
+};
+
+const checkMultipleLineRhyme = (): void => {
+  let text: string = (<HTMLInputElement>document.getElementById("verse")).value;
+  //Remove multiple spaces in a row
+  text = text.replace(/^\s+|\s+$/g, "").replace(/ +/g, " ");
+
+  let accentSyllable: string;
+  let syllableList: string[][] = [];
+  let result: string[] = [];
+  let accentSyllableList: string[] = [];
+  let sentenceList = text.split("\n");
+  let sentenceSyllableList;
+  let isRhyme = false;
+  let errorWordList: string[] = [];
+
+  sentenceList.forEach((sentence) => {
+    syllableList = [];
+    let coloredSentence = "";
+    let wordList: string[] = sentence.split(" ");
+    accentSyllableList = [];
+
+    wordList.forEach((word) => {
+      syllableList.push(pronounceData[formatWord(word).toUpperCase()]);
+    });
+    sentenceSyllableList = syllableList.flat();
+    console.log(sentenceSyllableList);
+  });
+};
+
+const checkRhyme = (): void => {
+  const resultHTMLElement = <HTMLInputElement>document.getElementById("result");
+  const result: string[][] = checkSingleLineRhyme();
+  const coloredSentence: string = result[0].join("<br><br>");
+  const errorWordList: string[] = result[1];
+  const notFoundHTMLElement = <HTMLInputElement>(
+    document.getElementById("notFoundWord")
+  );
+  notFoundHTMLElement.innerHTML = "";
+
+  resultHTMLElement.innerHTML = coloredSentence;
 
   if (errorWordList.length !== 0 && errorWordList[0] !== "") {
     notFoundHTMLElement.innerHTML = createNotFoundWordList(errorWordList);
   }
+  checkMultipleLineRhyme();
 };
