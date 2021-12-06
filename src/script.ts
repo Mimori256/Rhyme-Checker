@@ -1,4 +1,4 @@
-const colorCodeList: string[] = [
+/*const colorCodeList: string[] = [
   '<span style = "background-color:#da1552">',
   '<span style = "background-color:#96c958">',
   '<span style = "background-color:#1ba9d7">',
@@ -9,6 +9,19 @@ const colorCodeList: string[] = [
   '<span style = "background-color:#d98240">',
   '<span style = "background-color:#c71585">',
   '<span style = "background-color:#3cb371">',
+];*/
+
+const colorCodeList: string[] = [
+  "#d51552",
+  "#96c958",
+  "#1ba9d7",
+  "#f6f880",
+  "#e8d4c6",
+  "#006400",
+  "#da1552",
+  "#d98240",
+  "#c71585",
+  "#3cb371",
 ];
 
 const capitalize = (sentence: string): string => {
@@ -41,6 +54,10 @@ const applyColor = (
   return word;
 };
 
+const colorWord = (word: string, color: string): string => {
+  return '<span style = "background-color:' + color + '">' + word + "</span>";
+};
+
 const createNotFoundWordList = (wordList: string[]): string => {
   let header;
   if (wordList.length === 1) {
@@ -49,6 +66,15 @@ const createNotFoundWordList = (wordList: string[]): string => {
     header = "<h3>Words that couldn't be found in the dictionary</h3>";
   }
   return header + wordList.join(", ");
+};
+
+const countElementFromList = (list: string[], element: string): number => {
+  let count = 0;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === element) count++;
+  }
+  console.log(count);
+  return count;
 };
 
 const checkSingleLineRhyme = (): string[][] => {
@@ -109,21 +135,86 @@ const checkSingleLineRhyme = (): string[][] => {
   return [result, errorWordList];
 };
 
-const checkMultipleLineRhyme = (): void => {
+const checkMultipleLineRhyme = (): string[][] => {
   let text: string = (<HTMLInputElement>document.getElementById("verse")).value;
   //Remove multiple spaces in a row
   text = text.replace(/^\s+|\s+$/g, "").replace(/ +/g, " ");
 
   let accentSyllable: string;
-  let syllableList: string[][] = [];
+  let syllableList: string[] = [];
   let result: string[] = [];
   let accentSyllableList: string[] = [];
-  let sentenceList = text.split("\n");
+  let tmpVerseList: string[];
+  let verseList: string[][] = [];
   let sentenceSyllableList;
   let isRhyme = false;
   let errorWordList: string[] = [];
+  //syllableColorDict["accentSyllable"] = "color"
+  let syllableColorDict: { [key: string]: string } = {};
+  let count = 0;
 
-  sentenceList.forEach((sentence) => {
+  let sentenceList = text.split("\n");
+  tmpVerseList = text.split("\n\n");
+
+  for (let i = 0; i < tmpVerseList.length; i++) {
+    verseList.push(tmpVerseList[i].split("\n"));
+  }
+
+  verseList.forEach((verse) => {
+    syllableColorDict = {};
+    accentSyllableList = [];
+    count = 0;
+    verse.forEach((sentence) => {
+      let coloredSentence = "";
+      let wordList: string[] = sentence.split(" ");
+
+      wordList.forEach((word) => {
+        syllableList = pronounceData[formatWord(word).toUpperCase()];
+
+        if (typeof syllableList !== "undefined") {
+          syllableList.forEach((syllable) => {
+            if (
+              syllable.slice(-1) === "1" &&
+              Object.keys(syllableColorDict).indexOf(syllable) === -1
+            ) {
+              syllableColorDict[syllable] =
+                colorCodeList[count % colorCodeList.length];
+              count++;
+            }
+            if (syllable.slice(-1) === "1") accentSyllableList.push(syllable);
+          });
+        } else {
+          errorWordList.push(word);
+        }
+      });
+
+      //Filter for non-duplicate elements
+      console.log(syllableColorDict);
+
+      wordList.forEach((word) => {
+        console.log(accentSyllableList);
+        isRhyme = false;
+        syllableList = pronounceData[formatWord(word).toUpperCase()];
+
+        if (typeof syllableList !== "undefined") {
+          syllableList.forEach((syllable) => {
+            if (
+              Object.keys(syllableColorDict).indexOf(syllable) !== -1 &&
+              countElementFromList(accentSyllableList, syllable) > 1
+            ) {
+              word = colorWord(word, syllableColorDict[syllable]);
+            }
+          });
+        }
+        coloredSentence += word + " ";
+      });
+      result.push(coloredSentence);
+      count += accentSyllableList.length;
+    });
+  });
+
+  return [result, errorWordList];
+  /* sentenceList.forEach((sentence) => {
     syllableList = [];
     let coloredSentence = "";
     let wordList: string[] = sentence.split(" ");
@@ -134,12 +225,12 @@ const checkMultipleLineRhyme = (): void => {
     });
     sentenceSyllableList = syllableList.flat();
     console.log(sentenceSyllableList);
-  });
+  });*/
 };
 
 const checkRhyme = (): void => {
   const resultHTMLElement = <HTMLInputElement>document.getElementById("result");
-  const result: string[][] = checkSingleLineRhyme();
+  const result: string[][] = checkMultipleLineRhyme();
   const coloredSentence: string = result[0].join("<br><br>");
   const errorWordList: string[] = result[1];
   const notFoundHTMLElement = <HTMLInputElement>(
@@ -152,5 +243,4 @@ const checkRhyme = (): void => {
   if (errorWordList.length !== 0 && errorWordList[0] !== "") {
     notFoundHTMLElement.innerHTML = createNotFoundWordList(errorWordList);
   }
-  checkMultipleLineRhyme();
 };
