@@ -12,7 +12,7 @@
   '<span style = "background-color:#3cb371">',
 ];*/
 const colorCodeList = [
-    "#d51552",
+    "#6658A6",
     "#96c958",
     "#1ba9d7",
     "#f6f880",
@@ -22,6 +22,7 @@ const colorCodeList = [
     "#d98240",
     "#c71585",
     "#3cb371",
+    "#d51552",
 ];
 const capitalize = (sentence) => {
     return sentence.toUpperCase();
@@ -68,7 +69,6 @@ const countElementFromList = (list, element) => {
         if (list[i] === element)
             count++;
     }
-    console.log(count);
     return count;
 };
 const checkSingleLineRhyme = () => {
@@ -129,10 +129,9 @@ const checkMultipleLineRhyme = () => {
     let syllableList = [];
     let result = [];
     let accentSyllableList = [];
+    let accentSyllableDict = {};
     let tmpVerseList;
     let verseList = [];
-    let sentenceSyllableList;
-    let isRhyme = false;
     let errorWordList = [];
     //syllableColorDict["accentSyllable"] = "color"
     let syllableColorDict = {};
@@ -145,6 +144,25 @@ const checkMultipleLineRhyme = () => {
     verseList.forEach((verse) => {
         syllableColorDict = {};
         accentSyllableList = [];
+        accentSyllableDict = {};
+        verse.forEach((sentence) => {
+            let wordList = sentence.split(" ");
+            wordList.forEach((word) => {
+                syllableList = pronounceData[formatWord(word).toUpperCase()];
+                if (typeof syllableList !== "undefined") {
+                    syllableList.forEach((syllable) => {
+                        if (syllable.slice(-1) === "1") {
+                            if (typeof accentSyllableDict[syllable] === "undefined") {
+                                accentSyllableDict[syllable] = 1;
+                            }
+                            else {
+                                accentSyllableDict[syllable] += 1;
+                            }
+                        }
+                    });
+                }
+            });
+        });
         count = 0;
         verse.forEach((sentence) => {
             let coloredSentence = "";
@@ -159,24 +177,18 @@ const checkMultipleLineRhyme = () => {
                                 colorCodeList[count % colorCodeList.length];
                             count++;
                         }
-                        if (syllable.slice(-1) === "1")
-                            accentSyllableList.push(syllable);
                     });
                 }
                 else {
                     errorWordList.push(word);
                 }
             });
-            //Filter for non-duplicate elements
-            console.log(syllableColorDict);
             wordList.forEach((word) => {
-                console.log(accentSyllableList);
-                isRhyme = false;
                 syllableList = pronounceData[formatWord(word).toUpperCase()];
                 if (typeof syllableList !== "undefined") {
                     syllableList.forEach((syllable) => {
                         if (Object.keys(syllableColorDict).indexOf(syllable) !== -1 &&
-                            countElementFromList(accentSyllableList, syllable) > 1) {
+                            accentSyllableDict[syllable] > 1) {
                             word = colorWord(word, syllableColorDict[syllable]);
                         }
                     });
@@ -186,20 +198,9 @@ const checkMultipleLineRhyme = () => {
             result.push(coloredSentence);
             count += accentSyllableList.length;
         });
+        result.push("\n\n");
     });
     return [result, errorWordList];
-    /* sentenceList.forEach((sentence) => {
-      syllableList = [];
-      let coloredSentence = "";
-      let wordList: string[] = sentence.split(" ");
-      accentSyllableList = [];
-  
-      wordList.forEach((word) => {
-        syllableList.push(pronounceData[formatWord(word).toUpperCase()]);
-      });
-      sentenceSyllableList = syllableList.flat();
-      console.log(sentenceSyllableList);
-    });*/
 };
 const checkRhyme = () => {
     const resultHTMLElement = document.getElementById("result");
