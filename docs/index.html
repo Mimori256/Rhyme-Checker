@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+    <title>rhyme</title>
+  </head>
+  <body>
+    <div align="center">
+      <h1>Rhyme-checker</h1>
+      <textarea id="verse" rows="9" , cols="80"></textarea><br /><br />
+      <button id="confirm"  onclick="checkRhyme()" />check</button>
+      <br /><br />
+      <div id="result"></div>
+      <br />
+      <div id="notFoundWord"></div>
+      <hr />
+      <div class="footer">
+        <p>Created by Mimori256</p>
+        <p>
+          This tool uses
+          <a
+            href="http://www.speech.cs.cmu.edu/cgi-bin/cmudict"
+            target="_blank"
+            rel="noopener"
+            >CMUdict</a
+          >
+        </p>
+      </div>
+
+      <script type="text/javascript" src="script.js"></script>
+      <script type="text/javascript" src="pronounceData.js"></script>
+    </div>
+  </body>
+</html>
