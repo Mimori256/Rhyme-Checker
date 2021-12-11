@@ -150,6 +150,7 @@ const checkMultipleLineRhyme = (): string[][] => {
   let syllableList: string[] = [];
   let result: string[] = [];
   let accentSyllableList: string[] = [];
+  let accentSyllableDict: { [key: string]: number } = {};
   let tmpVerseList: string[];
   let verseList: string[][] = [];
   let errorWordList: string[] = [];
@@ -167,6 +168,25 @@ const checkMultipleLineRhyme = (): string[][] => {
   verseList.forEach((verse) => {
     syllableColorDict = {};
     accentSyllableList = [];
+    accentSyllableDict = {};
+    verse.forEach((sentence) => {
+      let wordList: string[] = sentence.split(" ");
+
+      wordList.forEach((word) => {
+        syllableList = pronounceData[formatWord(word).toUpperCase()];
+        if (typeof syllableList !== "undefined") {
+          syllableList.forEach((syllable) => {
+            if (syllable.slice(-1) === "1") {
+              if (typeof accentSyllableDict[syllable] === "undefined") {
+                accentSyllableDict[syllable] = 1;
+              } else {
+                accentSyllableDict[syllable] += 1;
+              }
+            }
+          });
+        }
+      });
+    });
     count = 0;
     verse.forEach((sentence) => {
       let coloredSentence = "";
@@ -185,25 +205,20 @@ const checkMultipleLineRhyme = (): string[][] => {
                 colorCodeList[count % colorCodeList.length];
               count++;
             }
-            if (syllable.slice(-1) === "1") accentSyllableList.push(syllable);
           });
         } else {
           errorWordList.push(word);
         }
       });
 
-
-      console.log(accentSyllableList)
       wordList.forEach((word) => {
         syllableList = pronounceData[formatWord(word).toUpperCase()];
 
         if (typeof syllableList !== "undefined") {
           syllableList.forEach((syllable) => {
-            console.log(syllable)
-            console.log(countElementFromList(accentSyllableList, syllable))
             if (
               Object.keys(syllableColorDict).indexOf(syllable) !== -1 &&
-              countElementFromList(accentSyllableList, syllable) > 1
+              accentSyllableDict[syllable] > 1
             ) {
               word = colorWord(word, syllableColorDict[syllable]);
             }
@@ -214,12 +229,11 @@ const checkMultipleLineRhyme = (): string[][] => {
       result.push(coloredSentence);
       count += accentSyllableList.length;
     });
-    result.push("\n\n")
-    console.log(syllableColorDict)
+    result.push("\n\n");
   });
 
   return [result, errorWordList];
- };
+};
 
 const checkRhyme = (): void => {
   const resultHTMLElement = <HTMLInputElement>document.getElementById("result");
