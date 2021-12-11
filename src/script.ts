@@ -12,7 +12,7 @@
 ];*/
 
 const colorCodeList: string[] = [
-  "#d51552",
+  "#6658A6",
   "#96c958",
   "#1ba9d7",
   "#f6f880",
@@ -22,6 +22,7 @@ const colorCodeList: string[] = [
   "#d98240",
   "#c71585",
   "#3cb371",
+  "#d51552",
 ];
 
 const capitalize = (sentence: string): string => {
@@ -79,7 +80,6 @@ const countElementFromList = (list: string[], element: string): number => {
   for (let i = 0; i < list.length; i++) {
     if (list[i] === element) count++;
   }
-  console.log(count);
   return count;
 };
 
@@ -152,8 +152,6 @@ const checkMultipleLineRhyme = (): string[][] => {
   let accentSyllableList: string[] = [];
   let tmpVerseList: string[];
   let verseList: string[][] = [];
-  let sentenceSyllableList;
-  let isRhyme = false;
   let errorWordList: string[] = [];
   //syllableColorDict["accentSyllable"] = "color"
   let syllableColorDict: { [key: string]: string } = {};
@@ -194,16 +192,15 @@ const checkMultipleLineRhyme = (): string[][] => {
         }
       });
 
-      //Filter for non-duplicate elements
-      console.log(syllableColorDict);
 
+      console.log(accentSyllableList)
       wordList.forEach((word) => {
-        console.log(accentSyllableList);
-        isRhyme = false;
         syllableList = pronounceData[formatWord(word).toUpperCase()];
 
         if (typeof syllableList !== "undefined") {
           syllableList.forEach((syllable) => {
+            console.log(syllable)
+            console.log(countElementFromList(accentSyllableList, syllable))
             if (
               Object.keys(syllableColorDict).indexOf(syllable) !== -1 &&
               countElementFromList(accentSyllableList, syllable) > 1
@@ -217,22 +214,12 @@ const checkMultipleLineRhyme = (): string[][] => {
       result.push(coloredSentence);
       count += accentSyllableList.length;
     });
+    result.push("\n\n")
+    console.log(syllableColorDict)
   });
 
   return [result, errorWordList];
-  /* sentenceList.forEach((sentence) => {
-    syllableList = [];
-    let coloredSentence = "";
-    let wordList: string[] = sentence.split(" ");
-    accentSyllableList = [];
-
-    wordList.forEach((word) => {
-      syllableList.push(pronounceData[formatWord(word).toUpperCase()]);
-    });
-    sentenceSyllableList = syllableList.flat();
-    console.log(sentenceSyllableList);
-  });*/
-};
+ };
 
 const checkRhyme = (): void => {
   const resultHTMLElement = <HTMLInputElement>document.getElementById("result");
